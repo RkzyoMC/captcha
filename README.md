@@ -1,6 +1,8 @@
 # captcha
 由nodejs编写的基础图片人机验证码
 
+[demo](https://x.yghpy.com/demo/captcha/)
+
 > `无需注册账户对接`我们搭建完成的[captcha](https://wiki.yghpy.com/zh/RkzyoAPI/web/captcha)
 
 # 公用人机验证码
