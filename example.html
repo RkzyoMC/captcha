@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>验证码测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f9;
+        }
+        #box {
+            cursor: pointer;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            padding: 10px;
+            background: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+        #ipt {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            width: 300px;
+            font-size: 16px;
+        }
+        #span {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .form-group label {
+            margin-right: 10px;
+        }
+        .form-group input[type="number"], .form-group input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .form-group input[type="number"] {
+            width: 80px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div id="box">点击刷新验证码</div>
+
+<div class="form-group">
+    <label for="ttl">TTL (ms):</label>
+    <input type="number" id="ttl" value="10000" min="1000" />
+</div>
+
+<div class="form-group">
+    <label for="capitalization">区分大小写:</label>
+    <input type="checkbox" id="capitalization" checked />
+</div>
+
+<input type="text" id="ipt" placeholder="请输入验证码" />
+<span id="span"></span>
+
+<button id="check">判断验证码</button>
+
+<script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+<script>
+    const box = document.querySelector('#box');
+    const ipt = document.querySelector('#ipt');
+    const span = document.querySelector('#span');
+    const ttlInput = document.querySelector('#ttl');
+    const capitalizationInput = document.querySelector('#capitalization');
+    const checkButton = document.querySelector('#check');
+    let text = '';
+    let uuid = '';
+
+    function getInfo() {
+        $.get('https://captcha.yghpy.com/obtain', (res) => {
+            text = res.text;
+            uuid = res.uuid; // 假设返回的 JSON 包含 uuid
+            box.innerHTML = res.data;
+            console.log(text);
+        });
+    }
+
+    // 初始加载验证码
+    getInfo();
+
+    // 点击 SVG 刷新验证码
+    box.addEventListener('click', getInfo);
+
+    // 点击刷新按钮刷新验证码
+    checkButton.addEventListener('click',  function () {
+        const userInput = ipt.value;
+        const ttl = parseInt(ttlInput.value, 10);
+        const capitalization = capitalizationInput.checked;
+
+        if (userInput) {
+            $.get('https://captcha.yghpy.com/check', {
+                uuid: uuid,
+                text: userInput,
+                ttl: ttl, // 使用用户自定义的 ttl
+                capitalization: capitalization // 使用用户自定义的 capitalization
+            }, (res) => {
+                switch (res.code) {
+                    case 0:
+                        span.innerHTML = '验证通过';
+                        span.style.color = 'green';
+                        break;
+                    case 1:
+                        span.innerHTML = '验证码不存在';
+                        span.style.color = 'red';
+                        break;
+                    case 2:
+                        span.innerHTML = '验证码错误';
+                        span.style.color = 'red';
+                        break;
+                    default:
+                        span.innerHTML = '验证失败';
+                        span.style.color = 'red';
+                }
+            });
+        } else {
+            span.innerHTML = '请输入验证码';
+            span.style.color = 'red';
+        }
+        getInfo();
+    });
+</script>
+</body>
+</html>
