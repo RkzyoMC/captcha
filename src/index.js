@@ -1,11 +1,10 @@
 const express = require('express');
 const svgCaptcha = require('svg-captcha');
 const crypto = require('crypto');
-const Redis = require("./Redis");
+const mdb = new (require("./MemoryDatabase"));
 const Verification = require("./Verification");
 
 const app = express();
-const redis = new Redis();
 const maxTTL = 60000; // 默认的验证码过期时间为60秒
 const port = 23000; // 默认的验证码过期时间为60秒
 
@@ -50,7 +49,7 @@ app.get('/obtain', (req, res) => {
     console.log(verification.toLog()); // 记录日志
     res.send(verification.toObtain()); // 返回给客户端
 
-    redis.storeData(uuid, verification.toJsonString(), maxTTL); // 存储验证码
+    mdb.set(uuid, verification.toJsonString(), maxTTL); // 存储验证码
 });
 
 // 验证验证码
@@ -65,7 +64,7 @@ app.get('/check', (req, res) => {
     }
 
     const ip = getClientIP(req);
-    let storeData = redis.getDataInTime(uuid, ttl);
+    let storeData = mdb.getInTime(uuid, ttl);
 
     if (!storeData) {
         return res.send('{"code": 1}'); // 验证码不存在或已过期
@@ -84,7 +83,7 @@ app.get('/check', (req, res) => {
         res.send('{"code": 2}'); // 验证码错误
     }
 
-    redis.deleteData(uuid); // 验证完毕后删除验证码
+    mdb.delete(uuid); // 验证完毕后删除验证码
 });
 
 // 启动服务器
