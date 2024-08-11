@@ -6,7 +6,7 @@ const Verification = require("./Verification");
 
 const app = express();
 const maxTTL = 60000; // 默认的验证码过期时间为60秒
-const port = 23000; // 默认的验证码过期时间为60秒
+const port = 23000; // 运行端口
 
 // 允许跨域访问设置
 app.all("*", function(req, res, next) {
